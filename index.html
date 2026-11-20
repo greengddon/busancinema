@@ -14,8 +14,12 @@ header{position:fixed;z-index:20;top:0;left:0;right:0;height:65px;background:rgb
 .book img{display:block;max-width:100%;max-height:calc(100dvh - 118px);height:auto;width:auto;object-fit:contain}
 .book.spread:after{content:'';position:absolute;top:0;bottom:0;left:50%;width:3%;transform:translateX(-50%);background:linear-gradient(90deg,transparent,rgba(0,0,0,.06) 46%,rgba(255,255,255,.10) 53%,transparent);pointer-events:none}
 .counter{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:11px;color:#6e8ba2}
-.dots{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:25;display:flex;flex-direction:column;gap:11px}
-.dot{width:10px;height:10px;border:1px solid #6791b1;background:white;border-radius:50%;cursor:pointer;padding:0}.dot.active{background:#3677ad}
+.dots{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:25;display:flex;flex-direction:column;align-items:flex-end;gap:12px;overflow:visible}
+ .dot{position:relative;width:27px;height:8px;min-height:8px;border:0;background:#a6bbd0;border-radius:2px;cursor:pointer;padding:0;transition:width .2s ease,background .2s ease,box-shadow .2s ease;overflow:visible}
+.dot.active{width:36px;background:#245f94}
+.dot:hover,.dot:focus-visible{width:36px;background:#245f94;box-shadow:0 0 0 4px rgba(36,95,148,.12);outline:none}
+.dot .tip{position:absolute;right:calc(100% + 13px);top:50%;transform:translate(7px,-50%);opacity:0;visibility:hidden;pointer-events:none;white-space:nowrap;background:#245f94;color:white;border-radius:6px;padding:10px 13px;font-size:14px;font-weight:700;line-height:1.35;box-shadow:0 5px 15px rgba(18,57,90,.17);transition:opacity .18s,transform .18s,visibility .18s}
+.dot:hover .tip,.dot:focus-visible .tip{opacity:1;visibility:visible;transform:translate(0,-50%)}
 .progress{position:fixed;top:64px;left:0;z-index:30;height:2px;background:#3677ad;width:0}
 .mobile-slide{display:none}
 @media(max-width:700px){
@@ -52,7 +56,7 @@ const firstForOriginal=i=>mobile()?i*2:i;
 menuItems.forEach(([label,i])=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>go(firstForOriginal(i));menus.append(b)});
 let current=0,playing=true,elapsed=0,last=performance.now();
 function setActive(i){current=Math.max(0,Math.min(i,slides().length-1));const oi=originalIndex(current);[...menus.querySelectorAll('button')].forEach((b,j)=>b.classList.toggle('active',j===oi));slides().forEach((s,j)=>s.querySelector('.counter').textContent=String(j+1).padStart(2,'0')+' / '+slides().length);renderDots()}
-function renderDots(){dots.replaceChildren();slides().forEach((s,i)=>{const b=document.createElement('button');b.className='dot'+(i===current?' active':'');b.title=s.getAttribute('aria-label');b.onclick=()=>go(i);dots.append(b)})}
+function renderDots(){dots.replaceChildren();slides().forEach((s,i)=>{const b=document.createElement('button');b.className='dot'+(i===current?' active':'');b.setAttribute('aria-label',s.getAttribute('aria-label'));const tip=document.createElement('span');tip.className='tip';tip.textContent=String(i+1).padStart(2,'0')+' · '+s.getAttribute('aria-label');b.append(tip);b.onclick=()=>go(i);dots.append(b)})}
 function go(i){const arr=slides();i=(i+arr.length)%arr.length;elapsed=0;main.scrollTo({top:arr[i].offsetTop-arr[0].offsetTop,behavior:'smooth'});setActive(i)}
 let scheduled=false;main.addEventListener('scroll',()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{const i=Math.max(0,Math.min(slides().length-1,Math.round(main.scrollTop/main.clientHeight)));if(i!==current){setActive(i);elapsed=0}scheduled=false})},{passive:true});
 toggle.onclick=()=>{playing=!playing;toggle.textContent=playing?'Ⅱ 일시정지':'▶ 자동 재생';elapsed=0};

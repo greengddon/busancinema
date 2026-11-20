@@ -1,0 +1,63 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>영화의전당 VOL.3 | 2026 SECOND HALF</title>
+<style>
+:root{--blue:#3677ad;--ink:#203e5a;--rail:49px}*{box-sizing:border-box}
+html{scroll-behavior:smooth}body{margin:0;font-family:Pretendard,'Noto Sans KR',system-ui,sans-serif;background:#e9f0f6;color:var(--ink);overflow:hidden}
+header{position:fixed;z-index:20;top:0;left:0;right:0;height:65px;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:space-between;padding:0 35px;border-bottom:1px solid #d5e2ed}
+.brand{font-size:22px;font-weight:900;white-space:nowrap}.brand small{font-size:11px;font-weight:500;margin-left:9px;color:#6c8da7}
+.controls button{border:1px solid #c6d7e6;background:#fff;border-radius:20px;color:var(--ink);padding:8px 13px;cursor:pointer}
+.menus{position:fixed;z-index:35;top:11px;left:300px;right:150px;height:44px;display:flex;align-items:center;justify-content:center;gap:2px;overflow-x:auto;scrollbar-width:none}
+.menus::-webkit-scrollbar{display:none}.menus button{flex-shrink:0;border:0;background:transparent;border-radius:15px;padding:9px 9px;color:#526d84;font-size:11px;cursor:pointer}
+.menus button.active,.menus button:hover{background:#deebf5;color:#1c5b90}
+#viewport{height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none}#viewport::-webkit-scrollbar{display:none}
+.slide{height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;display:flex;align-items:center;justify-content:center;padding:80px 62px 29px;position:relative}
+.book{position:relative;width:max-content;max-width:min(1320px,calc(100vw - 145px));max-height:calc(100dvh - 118px);line-height:0;filter:drop-shadow(0 8px 13px rgba(35,70,100,.12))}
+.book img{display:block;max-width:100%;max-height:calc(100dvh - 118px);height:auto;width:auto;object-fit:contain}
+.book.spread:after{content:'';position:absolute;top:0;bottom:0;left:50%;width:3%;transform:translateX(-50%);background:linear-gradient(90deg,transparent,rgba(0,0,0,.06) 46%,rgba(255,255,255,.10) 53%,transparent);pointer-events:none}
+.counter{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:11px;color:#6e8ba2}
+.dots{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:25;display:flex;flex-direction:column;gap:11px}
+.dot{width:10px;height:10px;border:1px solid #6791b1;background:white;border-radius:50%;cursor:pointer;padding:0}.dot.active{background:#3677ad}
+.progress{position:fixed;top:64px;left:0;z-index:30;height:2px;background:#3677ad;width:0}
+.mobile-slide{display:none}
+@media(max-width:700px){
+ header{left:var(--rail);width:calc(100% - var(--rail));height:46px;padding:0 8px}
+ .brand{font-size:13px;overflow:hidden;text-overflow:ellipsis}.brand small{display:none}
+ .controls button{font-size:9px;padding:6px}
+ .menus{top:0;bottom:0;left:0;right:auto;width:var(--rail);height:100dvh;padding:7px 3px;display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:2px;overflow-y:auto;overflow-x:hidden;background:#f6faff;border-right:1px solid #d2e0ec}
+ .menus:before{content:'목차';font-size:10px;text-align:center;font-weight:800;margin-bottom:6px}
+ .menus button{flex-shrink:1;min-height:0;padding:5px 1px;font-size:9px;line-height:1.25;white-space:normal;word-break:keep-all;text-align:center;border-radius:5px}
+ #viewport{position:relative;left:var(--rail);width:calc(100% - var(--rail))}
+ .pc-slide{display:none}.mobile-slide{display:flex}
+ .slide{padding:52px 6px 25px}
+ .book{max-width:100%;max-height:calc(100dvh - 90px);width:auto}
+ .book img{max-width:100%;max-height:calc(100dvh - 90px);width:auto;height:auto;object-fit:contain}
+ .book.spread:after{display:none}
+ .dots{display:none}.progress{left:var(--rail);top:45px}.counter{bottom:7px;font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style></head><body>
+<header><div class="brand">Busan Cinema Center <small>VOL.3 · 2026 SECOND HALF</small></div><div class="controls"><button id="toggle" type="button">Ⅱ 일시정지</button></div></header>
+<nav class="menus" id="menus" aria-label="목차"></nav><div class="progress" id="progress"></div>
+<main id="viewport" aria-label="영화의전당 웹진"></main><aside class="dots" id="dots"></aside>
+<script>
+const names=["표지 · 뒤표지", "목차", "영화의 도시 부산", "2026 주요 업적", "영화의전당 공간", "인디플러스 10주년", "이승진 본부장 인터뷰", "부산국제영화제", "문화예술 프로그램", "야외상영회", "크리스마스 빌리지", "문화가 있는 날"],menuItems=[["표지", 0], ["목차", 1], ["영화의전당", 2], ["주요 업적", 3], ["공간 소개", 4], ["인디플러스", 5], ["인터뷰", 6], ["부산국제영화제", 7], ["문화예술", 8], ["야외상영회", 9], ["크리스마스", 10], ["문화가 있는 날", 11]];
+const main=document.querySelector('#viewport'),menus=document.querySelector('#menus'),dots=document.querySelector('#dots'),progress=document.querySelector('#progress'),toggle=document.querySelector('#toggle');
+const mobile=()=>matchMedia('(max-width:700px)').matches;
+const pcSlides=[],mobileSlides=[],mobileData=[];
+function addSlide(name,file,kind){const sec=document.createElement('section');sec.className='slide '+kind+'-slide';sec.setAttribute('aria-label',name);sec.innerHTML=`<div class="book ${kind==='pc'?'spread':''}"><img src="images/${file}" alt="${name}" loading="lazy"></div><div class="counter"></div>`;main.append(sec);return sec}
+names.forEach((name,i)=>pcSlides.push(addSlide(name,'page'+String(i+1).padStart(2,'0')+'.jpg','pc')));
+names.forEach((name,i)=>['left','right'].forEach(side=>{mobileData.push({original:i,side});mobileSlides.push(addSlide(name+' '+(side==='left'?'왼쪽':'오른쪽'),'mobile_'+String(i+1).padStart(2,'0')+'_'+side+'.jpg','mobile'))}));
+const slides=()=>mobile()?mobileSlides:pcSlides;
+const originalIndex=i=>mobile()?mobileData[i].original:i;
+const firstForOriginal=i=>mobile()?i*2:i;
+menuItems.forEach(([label,i])=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>go(firstForOriginal(i));menus.append(b)});
+let current=0,playing=true,elapsed=0,last=performance.now();
+function setActive(i){current=Math.max(0,Math.min(i,slides().length-1));const oi=originalIndex(current);[...menus.querySelectorAll('button')].forEach((b,j)=>b.classList.toggle('active',j===oi));slides().forEach((s,j)=>s.querySelector('.counter').textContent=String(j+1).padStart(2,'0')+' / '+slides().length);renderDots()}
+function renderDots(){dots.replaceChildren();slides().forEach((s,i)=>{const b=document.createElement('button');b.className='dot'+(i===current?' active':'');b.title=s.getAttribute('aria-label');b.onclick=()=>go(i);dots.append(b)})}
+function go(i){const arr=slides();i=(i+arr.length)%arr.length;elapsed=0;main.scrollTo({top:arr[i].offsetTop-arr[0].offsetTop,behavior:'smooth'});setActive(i)}
+let scheduled=false;main.addEventListener('scroll',()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{const i=Math.max(0,Math.min(slides().length-1,Math.round(main.scrollTop/main.clientHeight)));if(i!==current){setActive(i);elapsed=0}scheduled=false})},{passive:true});
+toggle.onclick=()=>{playing=!playing;toggle.textContent=playing?'Ⅱ 일시정지':'▶ 자동 재생';elapsed=0};
+function tick(now){const delta=Math.min(now-last,250);last=now;if(playing&&!document.hidden){elapsed+=delta;if(elapsed>=30000){go(current+1);elapsed=0}}progress.style.width=(playing?elapsed/30000*100:0)+'%';requestAnimationFrame(tick)}requestAnimationFrame(tick);
+document.addEventListener('keydown',e=>{if(['ArrowDown','PageDown','ArrowRight'].includes(e.key)){e.preventDefault();go(current+1)}if(['ArrowUp','PageUp','ArrowLeft'].includes(e.key)){e.preventDefault();go(current-1)}});
+let wasMobile=mobile();window.addEventListener('resize',()=>{if(wasMobile!==mobile()){const oi=originalIndex(current);wasMobile=mobile();main.scrollTop=0;setActive(firstForOriginal(oi));main.scrollTop=slides()[current].offsetTop-slides()[0].offsetTop}});
+setActive(0);
+</script></body></html>
